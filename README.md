@@ -27,7 +27,7 @@ The application supports multiple ways to configure AWS credentials:
 
 ```bash
 git clone [your-repo-url]
-cd hello_bedrock
+cd simple-rust-example-amazon-bedrock
 cargo build
 ```
 
@@ -46,11 +46,7 @@ The example code will:
 
 ## License
 
-[Your chosen license]
-
-## Contributing
-
-[Your contribution guidelines]
+MIT License
 
 ## Security
 
