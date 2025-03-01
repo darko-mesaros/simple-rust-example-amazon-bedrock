@@ -16,6 +16,16 @@ use aws_sdk_bedrockruntime::{
     }
 };
 
+// Make it pretty
+use figlet_rs::FIGfont;
+
+pub fn print_header(s: &str) {
+    let standard_font = FIGfont::standard().unwrap();
+    let figure = standard_font.convert(s);
+    assert!(figure.is_some());
+    println!("{}", figure.unwrap());
+}
+
 #[derive(Debug)]
 pub struct BedrockConverseStreamError(pub String);
 impl std::fmt::Display for BedrockConverseStreamError {
@@ -62,7 +72,7 @@ impl From<&ConverseStreamOutputError> for BedrockConverseStreamError {
     }
 }
 
-pub fn get_converse_output_text(
+pub fn get_converse_stream_output_text(
     output: ConverseStreamOutputType,
 ) -> Result<String, BedrockConverseStreamError> {
     Ok(match output {
@@ -73,6 +83,7 @@ pub fn get_converse_output_text(
         _ => "".into(),
     })
 }
+
 
 //======================================== AWS
 pub async fn configure_aws(

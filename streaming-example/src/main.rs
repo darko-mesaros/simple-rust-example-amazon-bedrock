@@ -3,12 +3,21 @@ use aws_sdk_bedrockruntime::types::InferenceConfiguration;
 use aws_sdk_bedrockruntime::types::Message;
 use aws_sdk_bedrockruntime::types::ConversationRole;
 use aws_sdk_bedrockruntime::types::SystemContentBlock;
+use colored::Colorize;
 
 use std::io::{self, Write};
 
 // Some helper functions in lib.rs
 use hello_bedrock::BedrockConverseStreamError;
-use hello_bedrock::get_converse_output_text;
+use hello_bedrock::get_converse_stream_output_text;
+use hello_bedrock::print_header;
+
+// NOTE: PLEASE UNCOMMENT WHICH MODEL YOU WOULD LIKE TO USE:
+
+// const MODEL_ID: &str = "us.amazon.nova-pro-v1:0";
+const MODEL_ID: &str = "us.anthropic.claude-3-7-sonnet-20250219-v1:0";
+// const MODEL_ID: &str = "anthropic.claude-3-5-sonnet-20241022-v2:0";
+// const MODEL_ID: &str = "us.meta.llama3-3-70b-instruct-v1:0";
 
 
 #[tokio::main]
@@ -17,12 +26,9 @@ async fn main() -> Result<(), anyhow::Error> {
     // Bedrock Runtime
     let bedrockruntime = aws_sdk_bedrockruntime::Client::new(&config);
 
-    // Bedrock Agent Runtime - used with Knowledge bases
-    let _agentruntime = aws_sdk_bedrockagentruntime::Client::new(&config);
-
-    let model_id = "us.amazon.nova-pro-v1:0";
-    // let model_id = "us.anthropic.claude-3-7-sonnet-20250219-v1:0";
-    // let model_id = "us.meta.llama3-3-70b-instruct-v1:0";
+    print_header("Streaming Example");
+    println!("----------------------------------------");
+    println!("Using Model: {}", MODEL_ID.yellow());
 
     // Get user Input
     print!("Prompt: ");
@@ -41,17 +47,17 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let message = Message::builder()
         .role(ConversationRole::User)
-        .content(ContentBlock::Text(prompt))
+        .content(ContentBlock::Text(prompt.clone()))
         .build()?;
 
     let response = bedrockruntime.converse_stream()
         .messages(message)
-        .model_id(model_id)
+        .model_id(MODEL_ID)
         .inference_config(inference_config)
         .system(system_message)
         .send()
         .await; 
-
+    
 
     let mut stream = match response {
         Ok(output) => Ok(output.stream),
@@ -60,11 +66,12 @@ async fn main() -> Result<(), anyhow::Error> {
         )),
     }?;
 
+
     loop {
         let token = stream.recv().await;
         match token {
             Ok(Some(text)) => {
-                let next = get_converse_output_text(text)?;
+                let next = get_converse_stream_output_text(text)?;
                 print!("{}", next);
                 Ok(())
             }
@@ -79,7 +86,6 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 
     println!();
-
 
     Ok(())
 }
